@@ -50,6 +50,13 @@
          Fires in <strong>Adobe Acrobat/Reader</strong> — browsers' built-in PDF viewers sandbox PDF JavaScript, so it may stay silent there.</p>
     </a>
 
+    <a class="card" href="./cookie.html">
+      <h2>③ Cookie-exfil beacon <span class="pill">OOB / Collaborator</span></h2>
+      <p>Beacons <em>this</em> origin's <code class="mono">document.cookie</code> to your Burp Collaborator / Interactsh
+         (append <code class="mono">?c=you.oastify.com</code>) to confirm your out-of-band channel — plus the copy-paste
+         injection payloads for a real, authorized XSS. Same-origin policy: it reads only this site's own cookies.</p>
+    </a>
+
     <div class="note">
       <strong>Educational / authorized use only.</strong> These are demonstration artifacts. Each payload's sole action is a
       self-referential <code class="mono">alert</code> — there is no exfiltration, credential capture, redirection, or third-party target.

